@@ -25,6 +25,23 @@ exports['can resolve a single .js file from a subdirectory'] = function(done) {
   done();
 };
 
+exports['can resolve a directory from ./node_modules'] = function(done) {
+  assert.equal(
+    Resolver.resolve(__dirname+'/fixtures/dir', 'bbb'),
+    __dirname+'/fixtures/dir/node_modules/bbb'
+    );
+  done();
+
+};
+
+exports['can resolve a directory from a subdirectory'] = function(done) {
+  assert.equal(
+    Resolver.resolve(__dirname+'/fixtures/dir/sub', 'ccc'),
+    __dirname+'/fixtures/dir/node_modules/ccc'
+    );
+  done();
+};
+
 
 // if this module is the script being run, then run the tests:
 if (module == require.main) {
