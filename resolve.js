@@ -38,31 +38,36 @@ Resolver.resolve = function(basepath, name) {
 // - the set of file paths in that package, applying .npmignore
 // - the name of the main file
 Resolver.expand = function(contentPath, done) {
-  var stat = fs.stat(contentPath)
+  var stat = fs.statSync(contentPath),
+      mainFile = contentPath,
+      meta = {};
 
   // if it is a file, just return the file
-  if (stat.isFile()) return contentPath;
+  if (stat.isFile()) return done([contentPath]);
 
   // if it is a folder
   if (fs.existsSync(contentPath+'/package.json')) {
     // 1) check for a package.json
-
-  } else if (fs.existsSync(contentPath+'/index.json')) {
-    // 2) check for a index.json file
-
+    meta = JSON.parse(fs.readFileSync(contentPath+'/package.json'));
+    if(meta.main) {
+      mainFile = meta.main;
+    }
+  } else if (fs.existsSync(contentPath+'/index.js')) {
+    // 2) check for a index.js file
+    mainFile = contentPath+'/index.js';
   } else {
-    return false;
+    return done([]);
   }
 
   // if either one found:
   // 3) check for a .npmignore file and load it
-  if (fs.existSync(contentPath+'/.npmignore')) {
+  if (fs.existsSync(contentPath+'/.npmignore')) {
 
   }
   // 4) then iterate the whole directory - except ./node_modules which is handled elsewhere
   Resolver.iterate(contentPath, function(results) {
     // 5) then apply the npmignore on those file paths
-    done(results);
+    done(results.sort());
   });
 };
 
@@ -77,11 +82,12 @@ Resolver.iterate = function(path, done) {
       p += (p[p.length-1] !== '/' ? '/' : '');
       return fs.readdirSync(p).forEach(function (f) {
         Resolver.iterate(p + f, function(subResult) {
-          result.concat(subResult);
+          result = result.concat(subResult);
         });
       });
+    } else {
+      result.push(p);
     }
-    result.push(p);
   });
   done(result);
 };
