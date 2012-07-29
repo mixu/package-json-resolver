@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "Library for reading and resolving package.json files",
   "main": "resolve.js",
+  "author": {
+    "name": "Mikito Takada",
+    "email": "mikito.takada@gmail.com",
+    "url": "http://blog.mixu.net/"
+  },
   "directories": {
     "test": "test"
   },

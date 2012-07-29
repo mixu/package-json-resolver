@@ -25,9 +25,9 @@ Resolver.resolve = function(basepath, name) {
   var alt = Resolver.alternatives(basepath, name),
       match = '';
 
-  alt.some(function(path, i) {
-    var isMatch = fs.existsSync(path);
-    if(isMatch) match = path;
+  alt.some(function(fpath, i) {
+    var isMatch = fs.existsSync(fpath);
+    if(isMatch) match = path.normalize(fpath);
     return isMatch;
   });
 
@@ -37,45 +37,58 @@ Resolver.resolve = function(basepath, name) {
 // given a path to a package content, return:
 // - the set of file paths in that package, applying .npmignore
 // - the name of the main file
-Resolver.expand = function(contentPath, done) {
-  var stat = fs.statSync(contentPath),
-      mainFile = contentPath,
+Resolver.expand = function(basePath, done) {
+  var stat = fs.statSync(basePath),
+      mainFile = basePath,
+      dependencyNames = [],
       meta = {};
 
   // if it is a file, just return the file
-  if (stat.isFile()) return done([contentPath]);
+  if (stat.isFile()) {
+    // basepath is the directory the file is in
+    return done(path.dirname(basePath), '/' + path.basename(mainFile), [ basePath ], dependencyNames);
+  }
 
   // if it is a folder
-  if (fs.existsSync(contentPath+'/package.json')) {
+  if (fs.existsSync(basePath+'/package.json')) {
     // 1) check for a package.json
-    meta = JSON.parse(fs.readFileSync(contentPath+'/package.json'));
+    meta = JSON.parse(fs.readFileSync(basePath+'/package.json'));
     if(meta.main) {
-      mainFile = meta.main;
+      // replace "./foo" with "/foo" for compat
+      mainFile = meta.main.replace(/^\./, '');
+    } else {
+      mainFile = '/index.js';
     }
-  } else if (fs.existsSync(contentPath+'/index.js')) {
+    meta.dependencies && (dependencyNames = Object.keys(meta.dependencies));
+
+  } else if (fs.existsSync(basePath+'/index.js')) {
     // 2) check for a index.js file
-    mainFile = contentPath+'/index.js';
+    mainFile = '/index.js';
   } else {
-    return done([]);
+    return done(undefined, []);
   }
 
   // if either one found:
   // 3) check for a .npmignore file and load it
-  if (fs.existsSync(contentPath+'/.npmignore')) {
+  if (fs.existsSync(basePath+'/.npmignore')) {
 
   }
   // 4) then iterate the whole directory - except ./node_modules which is handled elsewhere
-  Resolver.iterate(contentPath, function(results) {
+  Resolver.iterate(basePath, function(results) {
     // 5) then apply the npmignore on those file paths
-    done(results.sort());
+    done(basePath, mainFile, results.sort(), dependencyNames);
   });
 };
+
+var nodeModulesEnd = new RegExp('/node_modules/?$');
 
 Resolver.iterate = function(path, done) {
   var paths = (Array.isArray(path) ? path : [ path ]),
       result = [];
 
   paths.forEach(function(p) {
+    // skip anything that ends with node_modules/ - we should never iterate into those directories
+    if(nodeModulesEnd.test(p)) return;
     var isDirectory = fs.statSync(p).isDirectory();
 
     if (isDirectory) {
@@ -91,12 +104,5 @@ Resolver.iterate = function(path, done) {
   });
   done(result);
 };
-
-
-// return the set of dependencies from package.json, given a path
-Resolver.getDependencies = function(contentPath) {
-
-};
-
 
 module.exports = Resolver;

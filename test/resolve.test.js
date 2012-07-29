@@ -43,29 +43,41 @@ exports['can resolve a directory from a subdirectory'] = function(done) {
 };
 
 exports['can expand a single file package'] = function(done) {
-  Resolver.expand(__dirname+'/fixtures/expandsingle/node_modules/foo.js', function(files) {
+  Resolver.expand(__dirname+'/fixtures/expandsingle/node_modules/foo.js',
+  function(basePath, main, files, dependencies) {
+    assert.equal(basePath, __dirname+'/fixtures/expandsingle/node_modules');
+    assert.equal(main, '/foo.js');
     assert.equal(files.length, 1);
     assert.equal(files[0], __dirname+'/fixtures/expandsingle/node_modules/foo.js');
+    assert.deepEqual(dependencies, []);
     done();
   });
 };
 
 exports['can expand a directory with a index.js file'] = function(done) {
-  Resolver.expand(__dirname+'/fixtures/expandindex/node_modules/foo', function(files) {
+  Resolver.expand(__dirname+'/fixtures/expandindex/node_modules/foo',
+  function(basePath, main, files, dependencies) {
+    assert.equal(basePath, __dirname+'/fixtures/expandindex/node_modules/foo');
+    assert.equal(main, '/index.js');
     assert.equal(files.length, 3);
     assert.equal(files[0], __dirname+'/fixtures/expandindex/node_modules/foo/index.js');
     assert.equal(files[1], __dirname+'/fixtures/expandindex/node_modules/foo/lib/sub.js');
     assert.equal(files[2], __dirname+'/fixtures/expandindex/node_modules/foo/other.js');
+    assert.deepEqual(dependencies, []);
     done();
   });
 };
 
 exports['can expand a directory with a package.json file'] = function(done) {
-  Resolver.expand(__dirname+'/fixtures/expandpackage/node_modules/foo', function(files) {
+  Resolver.expand(__dirname+'/fixtures/expandpackage/node_modules/foo',
+  function(basePath, main, files, dependencies) {
+    assert.equal(basePath, __dirname+'/fixtures/expandpackage/node_modules/foo');
+    assert.equal(main, '/lib/sub.js');
     assert.equal(files.length, 3);
     assert.equal(files[0], __dirname+'/fixtures/expandpackage/node_modules/foo/lib/sub.js');
     assert.equal(files[1], __dirname+'/fixtures/expandpackage/node_modules/foo/other.js');
     assert.equal(files[2], __dirname+'/fixtures/expandpackage/node_modules/foo/package.json');
+    assert.deepEqual(dependencies, []);
     done();
   });
 };
