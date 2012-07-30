@@ -1,6 +1,9 @@
 var fs = require('fs'),
     path = require('path');
 
+// Node 0.8.x compatibility
+var existsSync = (fs.existsSync ? fs.existsSync : path.existsSync);
+
 function Resolver() {
 
 }
@@ -26,7 +29,7 @@ Resolver.resolve = function(basepath, name) {
       match = '';
 
   alt.some(function(fpath, i) {
-    var isMatch = fs.existsSync(fpath);
+    var isMatch = existsSync(fpath);
     if(isMatch) match = path.normalize(fpath);
     return isMatch;
   });
@@ -50,7 +53,7 @@ Resolver.expand = function(basePath, done) {
   }
 
   // if it is a folder
-  if (fs.existsSync(basePath+'/package.json')) {
+  if (existsSync(basePath+'/package.json')) {
     // 1) check for a package.json
     meta = JSON.parse(fs.readFileSync(basePath+'/package.json'));
     if(meta.main) {
@@ -61,7 +64,7 @@ Resolver.expand = function(basePath, done) {
     }
     meta.dependencies && (dependencyNames = Object.keys(meta.dependencies));
 
-  } else if (fs.existsSync(basePath+'/index.js')) {
+  } else if (existsSync(basePath+'/index.js')) {
     // 2) check for a index.js file
     mainFile = '/index.js';
   } else {
@@ -70,7 +73,7 @@ Resolver.expand = function(basePath, done) {
 
   // if either one found:
   // 3) check for a .npmignore file and load it
-  if (fs.existsSync(basePath+'/.npmignore')) {
+  if (existsSync(basePath+'/.npmignore')) {
 
   }
   // 4) then iterate the whole directory - except ./node_modules which is handled elsewhere
