@@ -82,6 +82,27 @@ exports['can expand a directory with a package.json file'] = function(done) {
   });
 };
 
+exports['when the package.json doesn\'t have a main file, use index.js'] = function(done) {
+  done();
+};
+
+exports['it should be OK to define the main file without the .js extension'] = function(done) {
+  done();
+};
+
+exports['it should be OK to define the main file without starting with ./'] = function(done) {
+  done();
+};
+
+exports['it should be OK to define the main file as just a directory'] = function(done) {
+  done();
+};
+
+exports['excluding by .npmignore should work'] = function(done) {
+  done();
+};
+
+
 // if this module is the script being run, then run the tests:
 if (module == require.main) {
   var mocha = require('child_process').spawn('../node_modules/.bin/mocha', [ '--colors', '--ui', 'exports', '--reporter', 'spec', __filename ]);
