@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "mocha": "~1.3.0"
+  },
+  "dependencies": {
+    "minimatch": "~0.2.6"
   }
 }

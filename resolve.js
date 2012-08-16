@@ -74,6 +74,7 @@ Resolver.expand = function(basePath, done) {
   if (existsSync(basePath+'/.npmignore')) {
 
   }
+
   // 4) then iterate the whole directory - except ./node_modules which is handled elsewhere
   Resolver.iterate(basePath, function(results) {
     // 5) then apply the npmignore on those file paths
