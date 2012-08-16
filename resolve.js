@@ -4,9 +4,7 @@ var fs = require('fs'),
 // Node 0.8.x compatibility
 var existsSync = (fs.existsSync ? fs.existsSync : path.existsSync);
 
-function Resolver() {
-
-}
+function Resolver() {}
 
 // generate a set of paths to check when looking for a package by name
 Resolver.alternatives = function(basepath, name) {
@@ -83,15 +81,33 @@ Resolver.expand = function(basePath, done) {
   });
 };
 
-var nodeModulesEnd = new RegExp('/node_modules/?$');
+// from fstream-npm/fstream-npm.js:
+function isIgnored(entry) {
+  if (entry === ".git" ||
+      entry === ".lock-wscript" ||
+      entry.match(/^\.wafpickle-[0-9]+$/) ||
+      entry === "CVS" ||
+      entry === ".svn" ||
+      entry === ".hg" ||
+      entry.match(/^\..*\.swp$/) ||
+      entry === ".DS_Store" ||
+      entry.match(/^\._/) ||
+      entry === "npm-debug.log" ||
+      // we ignore this because node_modules are handled separately via the package.json
+      entry.match(new RegExp('node_modules$'))
+    ) {
+    return true;
+  }
+  return false;
+}
 
-Resolver.iterate = function(path, done) {
-  var paths = (Array.isArray(path) ? path : [ path ]),
+Resolver.iterate = function(filepath, done) {
+  var paths = (Array.isArray(filepath) ? filepath : [ filepath ]),
       result = [];
 
   paths.forEach(function(p) {
     // skip anything that ends with node_modules/ - we should never iterate into those directories
-    if(nodeModulesEnd.test(p)) return;
+    if(isIgnored(path.basename(p))) return;
     var isDirectory = fs.statSync(p).isDirectory();
 
     if (isDirectory) {
