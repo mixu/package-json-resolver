@@ -1,6 +1,6 @@
 {
   "name": "package-json-resolver",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Library for reading and resolving package.json files",
   "main": "resolve.js",
   "author": {
