@@ -8,13 +8,15 @@ function Resolver() {}
 
 // generate a set of paths to check when looking for a package by name
 Resolver.alternatives = function(basepath, name) {
-  var result = [], current = basepath;
+  var result = [], current = basepath, prev;
 
   // check ./node_modules
-  while(current != '/') {
-    result.push(current+'/node_modules/'+name);
-    result.push(current+'/node_modules/'+name+'.js');
-    result.push(current+'/node_modules/'+name+'.json');
+  while(current != prev) {
+    result.push(current + path.sep + 'node_modules' + path.sep + name);
+    result.push(current + path.sep + 'node_modules' + path.sep + name+'.js');
+    result.push(current + path.sep + 'node_modules' + path.sep + name+'.json');
+
+    prev = current; // until we cannot go higher (e.g. cross platform root)
     current = path.resolve(current, '..');
   }
 
@@ -23,6 +25,7 @@ Resolver.alternatives = function(basepath, name) {
 
 // given a base path and a package name, return the path to the package
 Resolver.resolve = function(basepath, name) {
+
   var alt = Resolver.alternatives(basepath, name),
       match = '';
 
@@ -51,9 +54,9 @@ Resolver.expand = function(basePath, done) {
   }
 
   // if it is a folder
-  if (existsSync(basePath+'/package.json')) {
+  if (existsSync(basePath+ path.sep + 'package.json')) {
     // 1) check for a package.json
-    meta = JSON.parse(fs.readFileSync(basePath+'/package.json'));
+    meta = JSON.parse(fs.readFileSync(basePath+ path.sep +'package.json'));
     if(meta.main) {
       // replace "./foo" with "/foo" for compat
       mainFile = meta.main.replace(/^\./, '');
@@ -62,7 +65,7 @@ Resolver.expand = function(basePath, done) {
     }
     meta.dependencies && (dependencyNames = Object.keys(meta.dependencies));
 
-  } else if (existsSync(basePath+'/index.js')) {
+  } else if (existsSync(basePath+ path.sep + 'index.js')) {
     // 2) check for a index.js file
     mainFile = '/index.js';
   } else {
@@ -71,7 +74,7 @@ Resolver.expand = function(basePath, done) {
 
   // if either one found:
   // 3) check for a .npmignore file and load it
-  if (existsSync(basePath+'/.npmignore')) {
+  if (existsSync(basePath+ path.sep +'.npmignore')) {
 
   }
 
@@ -112,7 +115,7 @@ Resolver.iterate = function(filepath, done) {
     var isDirectory = fs.statSync(p).isDirectory();
 
     if (isDirectory) {
-      p += (p[p.length-1] !== '/' ? '/' : '');
+      p += (p[p.length-1] !== path.sep ? path.sep : '');
       return fs.readdirSync(p).forEach(function (f) {
         Resolver.iterate(p + f, function(subResult) {
           result = result.concat(subResult);
